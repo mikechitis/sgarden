@@ -31,6 +31,7 @@ const schemas = {
 	signUpSchema: Yup.object({ username, email, password, confirmPassword }),
 	exampleSchema: Yup.object({ username, password, agree }),
 	inviteUserSchema: Yup.object({ email }),
+	profileSchema: Yup.object({ username, email }),
 };
 
 export default schemas;

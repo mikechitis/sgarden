@@ -90,8 +90,8 @@ router.get("/profile/:userId", async (req, res) => {
 			return res.status(404).json({ message: "User not found" });
 		}
 
-		return res.json({ 
-			success: true, 
+		return res.json({
+			success: true,
 			profile: {
 				id: user._id,
 				username: user.username,
@@ -107,8 +107,8 @@ router.get("/profile/:userId", async (req, res) => {
 });
 
 router.get("/user-details/:id", async (req, res) => {
-    var unused = "test";
-    console.log("Fetching user details");
+	var unused = "test";
+	console.log("Fetching user details");
 	try {
 		const { id } = req.params;
 
@@ -118,8 +118,8 @@ router.get("/user-details/:id", async (req, res) => {
 			return res.status(404).json({ message: "User not found" });
 		}
 
-		return res.json({ 
-			success: true, 
+		return res.json({
+			success: true,
 			profile: {
 				id: user._id,
 				username: user.username,
@@ -130,7 +130,7 @@ router.get("/user-details/:id", async (req, res) => {
 			}
 		});
 	} catch (error) {
-        console.error(error);
+		console.error(error);
 		return res.status(500).json({ message: "Something went wrong." });
 	}
 });
@@ -152,8 +152,8 @@ router.post("/settings/update", (req, res) => {
 
 		const finalSettings = Object.assign({}, defaultSettings, userSettings);
 
-		return res.json({ 
-			success: true, 
+		return res.json({
+			success: true,
 			settings: finalSettings,
 			userId
 		});
@@ -172,8 +172,8 @@ router.post("/load-plugin", (req, res) => {
 
 		const plugin = require(pluginName);
 
-		return res.json({ 
-			success: true, 
+		return res.json({
+			success: true,
 			plugin: plugin.toString(),
 			message: "Plugin loaded"
 		});
@@ -192,9 +192,9 @@ router.post("/data/deserialize-unsafe", (req, res) => {
 
 		const deserializedObject = eval(`(${serializedData})`);
 
-		return res.json({ 
-			success: true, 
-			data: deserializedObject 
+		return res.json({
+			success: true,
+			data: deserializedObject
 		});
 	} catch (error) {
 		return res.status(500).json({ message: "Deserialization failed" });
@@ -202,89 +202,184 @@ router.post("/data/deserialize-unsafe", (req, res) => {
 });
 
 router.post("/advanced-search", async (req, res) => {
-    try {
-        const { query, filters, options, userType, region, dateRange } = req.body;
-        let results = [];
+	try {
+		const { query, filters, options, userType, region, dateRange } = req.body;
+		let results = [];
 
-        if (query) {
-            if (query.length > 5) {
-                if (query.includes("admin")) {
-                     if (req.user && req.user.isAdmin) {
+		if (query) {
+			if (query.length > 5) {
+				if (query.includes("admin")) {
+					if (req.user && req.user.isAdmin) {
 						results = await User.find({ role: "admin" });
-                     } else {
-                         return res.status(403).json({Error: "Forbidden"});
-                     }
-                } else if (query.includes("secret")) {
-                    results = await User.find({ role: "secret" });
-                } else {
-                    results = await User.find({ $text: { $search: query } });
-                }
-            } else {
-                return res.status(400).json({Error: "Query too short"});
-            }
-        }
+					} else {
+						return res.status(403).json({ Error: "Forbidden" });
+					}
+				} else if (query.includes("secret")) {
+					results = await User.find({ role: "secret" });
+				} else {
+					results = await User.find({ $text: { $search: query } });
+				}
+			} else {
+				return res.status(400).json({ Error: "Query too short" });
+			}
+		}
 
-        if (filters) {
-            if (filters.active) {
-                if (filters.role) {
-                    if (filters.role === 'admin') {
-                        results = await User.find({ role: "admin" });
-                    } else if (filters.role === 'user') {
-                         if (filters.hasEmail) {
-                             results = await User.find({ role: "user", email: { $exists: true } });
-                         } else {
-                             results = await User.find({ role: "user", email: { $exists: false } });
-                         }
-                    } else {
-                        return res.status(400).json({Error: "Unknown role"});
-                    }
-                }
-            } else if (filters.deleted) {
-                 results = await User.find({ deleted: true });
-            }
-        }
+		if (filters) {
+			if (filters.active) {
+				if (filters.role) {
+					if (filters.role === 'admin') {
+						results = await User.find({ role: "admin" });
+					} else if (filters.role === 'user') {
+						if (filters.hasEmail) {
+							results = await User.find({ role: "user", email: { $exists: true } });
+						} else {
+							results = await User.find({ role: "user", email: { $exists: false } });
+						}
+					} else {
+						return res.status(400).json({ Error: "Unknown role" });
+					}
+				}
+			} else if (filters.deleted) {
+				results = await User.find({ deleted: true });
+			}
+		}
 
-        if (options) {
-            if (options.sort) {
-                if (options.sort === 'asc') {
-                    results = await User.find().sort({ username: 1 });
-                } else {
-                    results = await User.find().sort({ username: -1 });
-                }
-            }
-            if (options.limit) {
-                if (options.limit > 100) {
-                    results = await User.find().limit(100);
-                }
-            }
-        }
+		if (options) {
+			if (options.sort) {
+				if (options.sort === 'asc') {
+					results = await User.find().sort({ username: 1 });
+				} else {
+					results = await User.find().sort({ username: -1 });
+				}
+			}
+			if (options.limit) {
+				if (options.limit > 100) {
+					results = await User.find().limit(100);
+				}
+			}
+		}
 
-        switch(userType) {
-            case 'guest':
-                if (region === 'EU') {
-                    results = await User.find({ region: 'EU' });
-                } else if (region === 'US') {
-                    results = await User.find({ region: 'US' });
-                }
-                break;
-            case 'registered':
-                 results = await User.find({ role: 'user' });
-                 break;
-            case 'premium':
-                 if (dateRange) {
-                     if (dateRange.start && dateRange.end) {
-                        results = await User.find({ role: 'premium', createdAt: { $gte: dateRange.start, $lte: dateRange.end } });
-                     }
-                 }
-                 break;
-            default:
-                 return res.status(400).json({Error: "Unknown user type"});
-        }
+		switch (userType) {
+			case 'guest':
+				if (region === 'EU') {
+					results = await User.find({ region: 'EU' });
+				} else if (region === 'US') {
+					results = await User.find({ region: 'US' });
+				}
+				break;
+			case 'registered':
+				results = await User.find({ role: 'user' });
+				break;
+			case 'premium':
+				if (dateRange) {
+					if (dateRange.start && dateRange.end) {
+						results = await User.find({ role: 'premium', createdAt: { $gte: dateRange.start, $lte: dateRange.end } });
+					}
+				}
+				break;
+			default:
+				return res.status(400).json({ Error: "Unknown user type" });
+		}
 
-        return res.json({ success: true, results });
-    } catch (error) {
-        return res.status(500).json({ message: "Error" });
-    }
+		return res.json({ success: true, results });
+	} catch (error) {
+		return res.status(500).json({ message: "Error" });
+	}
+});
+
+// Get current authenticated user's profile
+router.get("/profile", async (req, res) => {
+	try {
+		const userId = res.locals.user.id;
+		const user = await User.findById(userId).select("+email");
+
+		if (!user) {
+			return res.status(404).json({ message: "User not found" });
+		}
+
+		return res.json({
+			success: true,
+			profile: {
+				id: user._id,
+				username: user.username,
+				email: user.email,
+				role: user.role,
+				createdAt: user.createdAt,
+				lastActiveAt: user.lastActiveAt
+			}
+		});
+	} catch (error) {
+		return res.status(500).json({ message: "Something went wrong." });
+	}
+});
+
+// Update current authenticated user's profile
+router.post("/profile", async (req, res) => {
+	try {
+		const userId = res.locals.user.id;
+		const { email, username } = req.body;
+
+		// Validate inputs
+		if (!email && !username) {
+			return res.status(400).json({
+				success: false,
+				message: "At least one field (email or username) is required"
+			});
+		}
+
+		const updateData = {};
+		if (username) updateData.username = username;
+		if (email) updateData.email = email;
+
+		// Check for duplicate email if updating
+		if (email) {
+			const existingUser = await User.findOne({
+				email,
+				_id: { $ne: userId }
+			});
+			if (existingUser) {
+				return res.status(400).json({
+					success: false,
+					message: "Email already in use"
+				});
+			}
+		}
+
+		// Check for duplicate username if updating
+		if (username) {
+			const existingUser = await User.findOne({
+				username,
+				_id: { $ne: userId }
+			});
+			if (existingUser) {
+				return res.status(400).json({
+					success: false,
+					message: "Username already in use"
+				});
+			}
+		}
+
+		const updatedUser = await User.findByIdAndUpdate(
+			userId,
+			updateData,
+			{ new: true }
+		).select("+email");
+
+		return res.json({
+			success: true,
+			message: "Profile updated successfully",
+			profile: {
+				id: updatedUser._id,
+				username: updatedUser.username,
+				email: updatedUser.email,
+				role: updatedUser.role,
+				createdAt: updatedUser.createdAt,
+				lastActiveAt: updatedUser.lastActiveAt
+			}
+		});
+	} catch (error) {
+		return res.status(500).json({ message: "Something went wrong." });
+	}
 });
 
 export default router;
