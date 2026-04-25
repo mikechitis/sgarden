@@ -5,6 +5,7 @@ import Card from "../components/Card.js";
 import Plot from "../components/Plot.js";
 import DatePicker from "../components/DatePicker.js";
 import Map from "../components/Map.js";
+import BookmarkToggle from "../components/BookmarkToggle.js";
 
 import colors from "../_colors.scss";
 
@@ -58,20 +59,23 @@ const Dashboard = () => {
         changePlotData(fromDate, toDate);
     }, [selectedRegion]);
 
-    return (
-        <Grid container py={2} flexDirection="column">
-            <Typography variant="h4" gutterBottom color="white.main">
-                Analytics
-            </Typography>
+	return (
+		<Grid container py={2} flexDirection="column">
+			<Grid container justifyContent="space-between" alignItems="center" mb={2}>
+				<Typography variant="h4" color="white.main">
+					Analytics
+				</Typography>
+				<BookmarkToggle pageId="dashboard1" />
+			</Grid>
 
-            <Grid item style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "20px" }}>
-                <Typography variant="body1" style={{ marginRight: "10px" }} color="white.main">Region:</Typography>
-                <Dropdown
-                    items={availableRegions.map((region) => ({ value: region, text: region }))}
-                    value={selectedRegion}
-                    onChange={(event) => setSelectedRegion(event.target.value)}
-                />
-            </Grid>
+			<Grid item style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "20px" }}>
+				<Typography variant="body1" style={{ marginRight: "10px" }} color="white.main">Region:</Typography>
+				<Dropdown
+					items={availableRegions.map((region) => ({ value: region, text: region }))}
+					value={selectedRegion}
+					onChange={(event) => setSelectedRegion(event.target.value)}
+				/>
+			</Grid>
 
             <Grid container spacing={2}>
                 <Grid container item sm={12} md={4} spacing={4}>

@@ -3,11 +3,12 @@ import { makeStyles } from "@mui/styles";
 import { useNavigate } from "react-router-dom";
 import { Button, Grid, Menu, MenuItem, Typography } from "@mui/material";
 import Image from "mui-image";
-import { ExpandMore } from "@mui/icons-material";
+import { ExpandMore, Star } from "@mui/icons-material";
 
 import Accordion from "./Accordion.js";
 
 import { jwt } from "../utils/index.js";
+import useGlobalState from "../use-global-state.js";
 
 const useStyles = makeStyles((theme) => ({
 	sidebar: {
@@ -19,16 +20,19 @@ const useStyles = makeStyles((theme) => ({
 	},
 }));
 
-const ButtonWithText = ({ text, icon, more, handler }) => (
+const ButtonWithText = ({ text, icon, more, handler, isBookmarked }) => (
 	<span key={text}>
 		{!more
 		&& (
-			<Button key={text} sx={{ width: "100%", display: "flex", flexDirection: "row", justifyContent: "flex-start", padding: "8px 40px 8px 16px" }} onClick={(event) => handler(event)}>
+			<Button key={text} sx={{ width: "100%", display: "flex", flexDirection: "row", justifyContent: "flex-start", padding: "8px 40px 8px 16px", position: "relative" }} onClick={(event) => handler(event)}>
 				{icon && (<Image src={icon} alt={text} fit="contain" width="25px" />)}
 				<Typography align="center" color="white.main" fontSize="medium" ml={1} display="flex" alignItems="center" sx={{ textTransform: "capitalize" }}>
 					{text}
 					{more && <ExpandMore />}
 				</Typography>
+				{isBookmarked && (
+					<Star sx={{ position: "absolute", right: "8px", fontSize: "18px", color: "warning.main" }} />
+				)}
 			</Button>
 		)}
 		{more
@@ -70,6 +74,7 @@ const Sidebar = ({ isSmall: sidebarIsSmall }) => {
 	const [isSmall, setIsSmall] = useState(false);
 	const navigate = useNavigate();
 	const classes = useStyles();
+	const bookmarks = useGlobalState((state) => state.bookmarks);
 
 	const isAdmin = jwt.isAdmin();
 
@@ -81,24 +86,28 @@ const Sidebar = ({ isSmall: sidebarIsSmall }) => {
 			handler: () => {
 				navigate("/users");
 			},
+			pageId: "users",
 		}] : []),
 		{
 			text: "Overview",
 			handler: () => {
 				navigate("/dashboard");
 			},
+			pageId: "dashboard",
 		},
 		{
 			text: "Analytics",
 			handler: () => {
 				navigate("/dashboard1");
 			},
+			pageId: "dashboard1",
 		},
 		{
 			text: "Insights",
 			handler: () => {
 				navigate("/dashboard2");
 			},
+			pageId: "dashboard2",
 		},
 	];
 
@@ -111,6 +120,7 @@ const Sidebar = ({ isSmall: sidebarIsSmall }) => {
 					text={button.text}
 					handler={button.handler}
 					more={button.more}
+					isBookmarked={button.pageId && bookmarks.includes(button.pageId)}
 				/>
 			))}
 			{isSmall && buttons.map((button, ind) => (

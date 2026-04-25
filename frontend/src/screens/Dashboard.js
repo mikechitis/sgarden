@@ -4,6 +4,7 @@ import { Grid, Typography, Box } from "@mui/material";
 import Dropdown from "../components/Dropdown.js";
 import Card from "../components/Card.js";
 import Plot from "../components/Plot.js";
+import BookmarkToggle from "../components/BookmarkToggle.js";
 
 const availableRegions = ["Thessaloniki", "Athens", "Patras"];
 const generateRandomData = (minimum = 0, maximum = 100) => {
@@ -46,20 +47,23 @@ const Dashboard = () => {
         setData(newData);
     }, [selectedRegion]);
 
-    return (
-        <Grid container py={2} flexDirection="column">
-            <Typography variant="h4" gutterBottom color="white.main">
-                Overview
-            </Typography>
+	return (
+		<Grid container py={2} flexDirection="column">
+			<Grid container justifyContent="space-between" alignItems="center" mb={2}>
+				<Typography variant="h4" color="white.main">
+					Overview
+				</Typography>
+				<BookmarkToggle pageId="dashboard" />
+			</Grid>
 
-            <Grid item style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "20px" }}>
-                <Typography variant="body1" style={{ marginRight: "10px" }} color="white.main">Region:</Typography>
-                <Dropdown
-                    items={availableRegions.map((region) => ({ value: region, text: region }))}
-                    value={selectedRegion}
-                    onChange={(event) => setSelectedRegion(event.target.value)}
-                />
-            </Grid>
+			<Grid item style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "20px" }}>
+				<Typography variant="body1" style={{ marginRight: "10px" }} color="white.main">Region:</Typography>
+				<Dropdown
+					items={availableRegions.map((region) => ({ value: region, text: region }))}
+					value={selectedRegion}
+					onChange={(event) => setSelectedRegion(event.target.value)}
+				/>
+			</Grid>
 
             <Grid container spacing={2}>
                 <Grid item xs={12} sm={4}>
