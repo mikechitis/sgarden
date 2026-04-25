@@ -5,6 +5,8 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
 	ExpandMore,
 	MoreVert as MoreIcon,
+	Brightness4,
+	Brightness7,
 } from "@mui/icons-material";
 import { makeStyles } from "@mui/styles";
 import { Image } from "mui-image";
@@ -12,6 +14,7 @@ import { Image } from "mui-image";
 import { jwt, capitalize } from "../utils/index.js";
 import logo from "../assets/images/logo.png";
 import { ReactComponent as LogoutIcon } from "../assets/images/logout.svg";
+import useGlobalState from "../use-global-state.js";
 
 const useStyles = makeStyles((theme) => ({
 	grow: {
@@ -74,8 +77,8 @@ const useStyles = makeStyles((theme) => ({
 	},
 }));
 
-const ButtonWithText = ({ text, icon, more, handler }) => (
-	<Button sx={{ height: "100%", display: "flex", flexDirection: "column", p: 1, mx: 1 }} onClick={(event) => handler(event)}>
+const ButtonWithText = ({ text, icon, more, handler, testId }) => (
+	<Button sx={{ height: "100%", display: "flex", flexDirection: "column", p: 1, mx: 1 }} onClick={(event) => handler(event)} data-testid={testId}>
 		<div style={{ width: "100%", height: "100%" }}>
 			{icon}
 		</div>
@@ -93,6 +96,8 @@ const Header = ({ isAuthenticated }) => {
 	const navigate = useNavigate();
 	const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
 	const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
+	const darkMode = useGlobalState((state) => state.darkMode);
+	const setDarkMode = useGlobalState((state) => state.setDarkMode);
 
 	const handleMobileMenuClose = () => setMobileMoreAnchorEl(null);
 	const handleMobileMenuOpen = (event) => setMobileMoreAnchorEl(event.currentTarget);
@@ -100,6 +105,18 @@ const Header = ({ isAuthenticated }) => {
 	const CrumpLink = styled(Link)(({ theme }) => ({ display: "flex", color: theme.palette.third.main }));
 
 	const buttons = [
+		{
+			icon: (
+				<>
+					{darkMode ? <Brightness7 sx={{ color: "secondary.main" }} /> : <Brightness4 sx={{ color: "secondary.main" }} />}
+					<span data-testid="theme-indicator-light" style={{ display: darkMode ? "none" : "block", position: "absolute", opacity: 0, pointerEvents: "none" }}></span>
+					<span data-testid="theme-indicator-dark" style={{ display: darkMode ? "block" : "none", position: "absolute", opacity: 0, pointerEvents: "none" }}></span>
+				</>
+			),
+			text: "Dark Mode",
+			handler: () => setDarkMode(!darkMode),
+			testId: "dark-mode-toggle",
+		},
 		{
 			icon: <LogoutIcon className={classes.svgIcon} />,
 			text: "Logout",
@@ -146,38 +163,39 @@ const Header = ({ isAuthenticated }) => {
 					</Box>
 					<Box className={classes.grow} style={{ height: "100%" }} />
 					{isAuthenticated
-					&& (
-						<>
-							<Box sx={{ display: { xs: "none", sm: "none", md: "flex" }, height: "100%", py: 1 }}>
-								{buttons.map((button) => (
-									<ButtonWithText
-										key={button.text}
-										icon={button.icon}
-										text={button.text}
-										handler={button.handler}
-										more={button.more}
-									/>
-								))}
-							</Box>
-							<Box sx={{ display: { xs: "flex", sm: "flex", md: "none" } }}>
-								<IconButton color="primary" onClick={handleMobileMenuOpen}><MoreIcon /></IconButton>
-							</Box>
-						</>
-					)}
+						&& (
+							<>
+								<Box sx={{ display: { xs: "none", sm: "none", md: "flex" }, height: "100%", py: 1 }}>
+									{buttons.map((button) => (
+										<ButtonWithText
+											key={button.text}
+											icon={button.icon}
+											text={button.text}
+											handler={button.handler}
+											more={button.more}
+											testId={button.testId}
+										/>
+									))}
+								</Box>
+								<Box sx={{ display: { xs: "flex", sm: "flex", md: "none" } }}>
+									<IconButton color="primary" onClick={handleMobileMenuOpen}><MoreIcon /></IconButton>
+								</Box>
+							</>
+						)}
 				</Toolbar>
 			</AppBar>
 			{isAuthenticated
-			&& (
-				<Paper elevation={0} className={classes.root}>
-					<Breadcrumbs className="header-container">{crumps.map((e, ind) => <div key={`crump_${ind}`}>{e}</div>)}</Breadcrumbs>
-				</Paper>
-			)}
+				&& (
+					<Paper elevation={0} className={classes.root}>
+						<Breadcrumbs className="header-container">{crumps.map((e, ind) => <div key={`crump_${ind}`}>{e}</div>)}</Breadcrumbs>
+					</Paper>
+				)}
 			{isAuthenticated
-			&& (
-				<>
-					{renderMobileMenu}
-				</>
-			)}
+				&& (
+					<>
+						{renderMobileMenu}
+					</>
+				)}
 		</>
 	);
 };
